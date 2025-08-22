@@ -19,7 +19,7 @@ return new class extends Migration
             $table->json('attempted_emails')->nullable(); // Store all attempted emails
             $table->integer('failed_attempts')->default(0);
             $table->integer('lock_count')->default(0); // Progressive lock counter
-            $table->timestamp('lock_until')->nullable();
+            $table->dateTimeTz('lock_until')->nullable();
             $table->timestamps();
         });
 
@@ -27,7 +27,7 @@ return new class extends Migration
             $table->id();
             $table->string('ip_address', 45)->unique();
             $table->integer('failed_attempts')->default(0);
-            $table->timestamp('lock_until')->nullable();
+            $table->dateTimeTz('lock_until')->nullable();
             $table->timestamps();
         });
     }

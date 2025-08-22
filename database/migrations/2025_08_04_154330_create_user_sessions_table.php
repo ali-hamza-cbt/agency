@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('ip_address');
             $table->string('country')->nullable();
             $table->text('refresh_token');
-            $table->timestamp('expires_at');
-            $table->timestamp('last_used_at')->nullable();
+            $table->dateTimeTz('expires_at')->nullable();
+            $table->dateTimeTz('last_used_at')->nullable();
             $table->timestamps();
         });
     }
