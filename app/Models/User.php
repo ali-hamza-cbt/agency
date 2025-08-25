@@ -224,4 +224,17 @@ class   User extends Authenticatable
     {
         return $this->hasMany(User::class, 'agency_id')->where('role', 'admin');
     }
+
+    /**
+     * *Other Relations 
+     */
+    public function brands()
+    {
+        return $this->hasMany(Brand::class, 'agency_id');
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class, 'agency_id');
+    }
 }

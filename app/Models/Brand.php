@@ -31,4 +31,8 @@ class Brand extends Model
     {
         return $this->belongsTo(User::class, 'agency_id');
     }
+    public function categories()
+    {
+        return $this->hasMany(Category::class, 'brand_id');
+    }
 }

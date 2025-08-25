@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Api\Web;
 use App\Models\Brand;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
+use App\Traits\PaginatesOrAll;
 use App\Helpers\ImageStorageHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
 class BrandController extends Controller
 {
-    
+
+    use PaginatesOrAll;
     protected $user;
 
     public function __construct()
@@ -27,9 +29,7 @@ class BrandController extends Controller
             $query->where('name', 'like', "%$search%");
         }
 
-        $perPage = is_numeric($request->input('paginate')) ? min((int) $request->input('paginate'), 100) : 10;
-
-        $brands = $query->latest()->paginate($perPage);
+        $brands = $this->paginateOrAll($query->latest(), $request);
 
         return ApiResponse::success($brands, 'Brands fetched successfully.');
     }
@@ -150,9 +150,7 @@ class BrandController extends Controller
             $query->where('name', 'like', "%$search%");
         }
 
-        $perPage = is_numeric($request->input('paginate')) ? min((int) $request->input('paginate'), 100) : 10;
-
-        $brands = $query->latest()->paginate($perPage);
+        $brands = $this->paginateOrAll($query->latest(), $request);
 
         return ApiResponse::success($brands, 'Trashed brands fetched successfully.');
     }

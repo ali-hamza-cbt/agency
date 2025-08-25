@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\Web\BrandController;
+use App\Http\Controllers\Api\Web\CategoryController;
 use App\Http\Controllers\Api\Web\AgencyDetailController;
 use App\Http\Controllers\Api\Web\AuthController as WebAuth;
 use App\Http\Controllers\Api\Mobile\AuthController as MobileAuth;
@@ -23,12 +24,35 @@ Route::prefix('web')->group(function () {
          * Agency Details
          */
         Route::post('/store-agency-details', [AgencyDetailController::class, 'store'])->name('agency-details.store');
-        Route::post('/upate-agency-details', [AgencyDetailController::class, 'update'])->name('agency-details.update');
 
         /**
          * Brands
          */
         Route::controller(BrandController::class)->prefix('brands')->group(function () {
+
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('/{id}', 'show');
+            Route::post('/{id}/update', 'update');
+            Route::delete('/{id}', 'destroy');
+
+            // Status change
+            Route::post('/{id}/change-status', 'changeStatus');
+
+            // Trashed/Restore/Force Delete
+            Route::get('/trashed', 'trashed');
+            Route::post('/{id}/restore', 'restore');
+            Route::delete('/{id}/force-delete', 'forceDelete');
+
+            // Bulk actions
+            Route::post('/bulk-delete', 'bulkDelete');
+            Route::post('/bulk-restore', 'bulkRestore');
+        });
+
+        /**
+         * Categories
+         */
+        Route::controller(CategoryController::class)->prefix('brands')->group(function () {
 
             Route::get('/', 'index');
             Route::post('/', 'store');
