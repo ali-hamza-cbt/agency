@@ -14,7 +14,7 @@ Route::prefix('web')->group(function () {
     Route::post('/refresh', [WebAuth::class, 'refresh'])->middleware('throttle:10,1');
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/profile', fn() => auth()->user())->middleware('auth:sanctum');
+        Route::get('/profile', fn() => Auth::user())->middleware('auth:sanctum');
         Route::post('/logout', [WebAuth::class, 'logout']);
         Route::post('/logout-all', [WebAuth::class, 'logoutAll']);
         Route::get('/sessions', [SessionController::class, 'index']);
