@@ -72,7 +72,9 @@ Route::prefix('web')->group(function () {
             Route::post('/bulk-delete', 'bulkDelete');
             Route::post('/bulk-restore', 'bulkRestore');
         });
+
     });
+
 });
 
 Route::prefix('mobile')->group(function () {
