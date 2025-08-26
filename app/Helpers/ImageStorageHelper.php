@@ -52,4 +52,25 @@ class ImageStorageHelper
 
         return self::store($file, $folder, $diskToUse);
     }
+
+    /**
+     * Delete multiple files from storage.
+     *
+     * @param array|string|null $paths
+     * @param string|null $disk
+     * @return void
+     */
+    public static function deleteMultiple($paths, ?string $disk = null): void
+    {
+        if (!$paths) return;
+
+        $diskToUse = $disk ?? config('filesystems.default');
+        $pathsArray = is_array($paths) ? $paths : [$paths];
+
+        foreach ($pathsArray as $path) {
+            if ($path && Storage::disk($diskToUse)->exists($path)) {
+                Storage::disk($diskToUse)->delete($path);
+            }
+        }
+    }
 }

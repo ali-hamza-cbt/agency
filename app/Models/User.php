@@ -226,7 +226,7 @@ class   User extends Authenticatable
     }
 
     /**
-     * *Other Relations 
+     * *Other Relations
      */
     public function brands()
     {
@@ -236,5 +236,16 @@ class   User extends Authenticatable
     public function categories()
     {
         return $this->hasMany(Category::class, 'agency_id');
+    }
+    // An agency can have multiple products
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'agency_id');
+    }
+
+    // An agency can have multiple product batches (inventory)
+    public function productBatches()
+    {
+        return $this->hasMany(ProductBatch::class, 'agency_id');
     }
 }
