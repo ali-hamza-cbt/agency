@@ -28,7 +28,7 @@ class ImageStorageHelper
         $role = $account->role ?? 'unknown';
         $path = "user_uploads/{$role}/{$account->id}/{$folder}";
 
-        return $file->store($path, $disk ?? config('filesystems.default'));
+        return $file->store($path, $disk ?? 'public');
     }
 
     /**
@@ -44,7 +44,7 @@ class ImageStorageHelper
      */
     public static function update(UploadedFile $file, string $folder, ?string $oldPath, ?string $disk = null): string
     {
-        $diskToUse = $disk ?? config('filesystems.default');
+        $diskToUse = $disk ?? 'public';
 
         if ($oldPath && Storage::disk($diskToUse)->exists($oldPath)) {
             Storage::disk($diskToUse)->delete($oldPath);
@@ -64,7 +64,7 @@ class ImageStorageHelper
     {
         if (!$paths) return;
 
-        $diskToUse = $disk ?? config('filesystems.default');
+        $diskToUse = $disk ?? 'public';
         $pathsArray = is_array($paths) ? $paths : [$paths];
 
         foreach ($pathsArray as $path) {

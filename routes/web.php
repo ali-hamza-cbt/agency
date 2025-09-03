@@ -54,7 +54,7 @@ Route::prefix('web')->group(function () {
         /**
          * Categories
          */
-        Route::controller(CategoryController::class)->prefix('brands')->group(function () {
+        Route::controller(CategoryController::class)->prefix('categories')->group(function () {
 
             Route::get('/', 'index');
             Route::post('/', 'store');
