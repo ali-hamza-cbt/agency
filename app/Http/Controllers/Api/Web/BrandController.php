@@ -144,6 +144,7 @@ class BrandController extends Controller
 
     public function deleted(Request $request)
     {
+        return 'ok';
         $query = Brand::query()->where('agency_id', $this->user->id);
 
         if ($search = $request->input('search')) {

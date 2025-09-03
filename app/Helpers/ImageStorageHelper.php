@@ -20,6 +20,7 @@ class ImageStorageHelper
     public static function store(UploadedFile $file, string $folder, ?string $disk = null): string
     {
         $account = currentAccount();
+        $diskToUse = $disk ?? config('filesystems.default');
 
         if (!$account) {
             throw new \Exception('No account context found.');
@@ -28,7 +29,7 @@ class ImageStorageHelper
         $role = $account->role ?? 'unknown';
         $path = "user_uploads/{$role}/{$account->id}/{$folder}";
 
-        return $file->store($path, $disk ?? 'public');
+        return $file->store($path, $disk ?? config('filesystems.default'));
     }
 
     /**
@@ -44,7 +45,7 @@ class ImageStorageHelper
      */
     public static function update(UploadedFile $file, string $folder, ?string $oldPath, ?string $disk = null): string
     {
-        $diskToUse = $disk ?? 'public';
+        $diskToUse = $disk ?? config('filesystems.default');
 
         if ($oldPath && Storage::disk($diskToUse)->exists($oldPath)) {
             Storage::disk($diskToUse)->delete($oldPath);
@@ -64,7 +65,7 @@ class ImageStorageHelper
     {
         if (!$paths) return;
 
-        $diskToUse = $disk ?? 'public';
+        $diskToUse = $disk ?? config('filesystems.default');
         $pathsArray = is_array($paths) ? $paths : [$paths];
 
         foreach ($pathsArray as $path) {
