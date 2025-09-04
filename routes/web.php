@@ -30,94 +30,27 @@ Route::prefix('web')->group(function () {
         /**
          * Brands
          */
-        Route::controller(BrandController::class)->prefix('brands')->group(function () {
+        Route::prefix('brands')->controller(BrandController::class)->group(function () {
 
-            Route::get('/', 'index');
-            Route::post('/', 'store');
-            Route::get('/{id}', 'show');
-            Route::post('/{id}/update', 'update');
-            Route::delete('/{id}', 'destroy');
+            // CRUD
+            Route::get('/', 'index');               // list brands
+            Route::post('/', 'store');              // create brand
+            Route::get('/trashed', 'trashed');      // trashed brands
+            Route::get('/{id}', 'show');            // show brand
+            Route::post('/{id}/update', 'update');  // update brand
+            Route::delete('/{id}', 'destroy');      // delete brand
 
-            // Status change
+            // Actions
             Route::post('/{id}/change-status', 'changeStatus');
-
-            // Trashed/Restore/Force Delete
-            Route::get('/trashed', 'trashed');
             Route::post('/{id}/restore', 'restore');
             Route::delete('/{id}/force-delete', 'forceDelete');
 
             // Bulk actions
             Route::post('/bulk-delete', 'bulkDelete');
             Route::post('/bulk-restore', 'bulkRestore');
-        });
-
-        /**
-         * Categories
-         */
-        Route::controller(CategoryController::class)->prefix('categories')->group(function () {
-
-            Route::get('/', 'index');
-            Route::post('/', 'store');
-            Route::get('/{id}', 'show');
-            Route::post('/{id}/update', 'update');
-            Route::delete('/{id}', 'destroy');
-
-            // Status change
-            Route::post('/{id}/change-status', 'changeStatus');
-
-            // Trashed/Restore/Force Delete
-            Route::get('/trashed', 'trashed');
-            Route::post('/{id}/restore', 'restore');
-            Route::delete('/{id}/force-delete', 'forceDelete');
-
-            // Bulk actions
-            Route::post('/bulk-delete', 'bulkDelete');
-            Route::post('/bulk-restore', 'bulkRestore');
-        });
-
-        /**
-         * Products
-         */
-        Route::controller(ProductController::class)->prefix('products')->group(function () {
-            Route::get('/', 'index');                  // List products
-            Route::post('/', 'store');                 // Create product
-            Route::get('/{id}', 'show');               // Show product details
-            Route::post('/{id}/update', 'update');    // Update product
-            Route::delete('/{id}', 'delete');         // Soft delete product
-
-            // Status change
-            Route::post('/{id}/change-status', 'changeStatus');
-
-            // Trashed / Restore / Force Delete
-            Route::get('/trashed', 'trashed');        // List trashed products
-            Route::post('/{id}/restore', 'restore');  // Restore soft deleted product
-            Route::delete('/{id}/force-delete', 'forceDelete'); // Permanent delete
-
-            // Bulk actions
-            Route::post('/bulk-delete', 'bulkDelete');
-            Route::post('/bulk-restore', 'bulkRestore');
-        });
-
-        /**
-         * Product Batches
-         */
-        Route::controller(ProductBatchController::class)->prefix('product-batches')->group(function () {
-            Route::get('/', 'index');                  // List batches
-            Route::post('/', 'store');                 // Create batch
-            Route::get('/{id}', 'show');               // Show batch details
-            Route::post('/{id}/update', 'update');    // Update batch
-            Route::delete('/{id}', 'delete');         // Soft delete batch
-
-            // Trashed / Restore / Force Delete
-            Route::get('/trashed', 'trashed');        // List trashed batches
-            Route::post('/{id}/restore', 'restore');  // Restore soft deleted batch
-            Route::delete('/{id}/force-delete', 'forceDelete'); // Permanent delete
         });
     });
 });
-
-
-
 
 
 /**
