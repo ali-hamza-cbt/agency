@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Traits\PaginatesOrAll;
+use Illuminate\Validation\Rule;
 use App\Helpers\ImageStorageHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -40,7 +41,13 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'brand_id'    => 'required|exists:brands,id',
+            'brand_id' => [
+                'required',
+                Rule::exists('brands', 'id')->where(function ($query) {
+                    $query->where('agency_id', $this->user->id);
+                }),
+            ],
+
             'name'        => 'required|string|max:255',
             'logo'        => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
             'description' => 'nullable|string',
@@ -71,7 +78,7 @@ class CategoryController extends Controller
         $category = Category::where('agency_id', $this->user->id)->find($id);
 
         if (!$category) {
-            return ApiResponse::error([], 'Category not found.');
+            return ApiResponse::error('Category not found.');
         }
 
         return ApiResponse::success($category, 'Category details fetched.');
@@ -80,7 +87,12 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'brand_id'    => 'required|exists:brands,id',
+            'brand_id'    => [
+                'required',
+                Rule::exists('brands', 'id')->where(function ($query) {
+                    $query->where('agency_id', $this->user->id);
+                }),
+            ],
             'name'        => 'required|string|max:255',
             'logo'        => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
             'description' => 'nullable|string',
@@ -94,7 +106,7 @@ class CategoryController extends Controller
             $category = Category::where('id', $id)->where('agency_id', $this->user->id)->first();
 
             if (!$category) {
-                return ApiResponse::error([], 'Category not found.');
+                return ApiResponse::error('Category not found.');
             }
 
             $data = $request->only(['brand_id', 'name', 'description']);
@@ -111,12 +123,13 @@ class CategoryController extends Controller
         }
     }
 
-    public function delete($id)
+
+    public function destroy($id)
     {
         $category = Category::where('agency_id', $this->user->id)->find($id);
 
         if (!$category) {
-            return ApiResponse::error([], 'Category not found.');
+            return ApiResponse::error('Category not found.');
         }
 
         $category->delete();
@@ -129,7 +142,7 @@ class CategoryController extends Controller
         $category = Category::where('agency_id', $this->user->id)->find($id);
 
         if (!$category) {
-            return ApiResponse::error([], 'Category not found.', 404);
+            return ApiResponse::error('Category not found.');
         }
 
         $status = $request->input('status');
@@ -166,7 +179,7 @@ class CategoryController extends Controller
         $category = Category::onlyTrashed()->where('agency_id', $this->user->id)->find($id);
 
         if (!$category) {
-            return ApiResponse::error([], 'Category not found in trash.');
+            return ApiResponse::error('Category not found in trash.');
         }
 
         $category->restore();
@@ -179,7 +192,7 @@ class CategoryController extends Controller
         $category = Category::onlyTrashed()->where('agency_id', $this->user->id)->find($id);
 
         if (!$category) {
-            return ApiResponse::error([], 'Category not found in trash.');
+            return ApiResponse::error('Category not found in trash.');
         }
 
         $category->forceDelete();

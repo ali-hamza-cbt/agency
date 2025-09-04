@@ -49,6 +49,29 @@ Route::prefix('web')->group(function () {
             Route::post('/bulk-delete', 'bulkDelete');
             Route::post('/bulk-restore', 'bulkRestore');
         });
+
+        /**
+         * Categories
+         */
+        Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+
+            // CRUD
+            Route::get('/', 'index');               // list brands
+            Route::post('/', 'store');              // create brand
+            Route::get('/trashed', 'trashed');      // trashed brands
+            Route::get('/{id}', 'show');            // show brand
+            Route::post('/{id}/update', 'update');  // update brand
+            Route::delete('/{id}', 'destroy');      // delete brand
+
+            // Actions
+            Route::post('/{id}/change-status', 'changeStatus');
+            Route::post('/{id}/restore', 'restore');
+            Route::delete('/{id}/force-delete', 'forceDelete');
+
+            // Bulk actions
+            Route::post('/bulk-delete', 'bulkDelete');
+            Route::post('/bulk-restore', 'bulkRestore');
+        });
     });
 });
 

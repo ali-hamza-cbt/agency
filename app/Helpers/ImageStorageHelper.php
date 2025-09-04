@@ -20,7 +20,6 @@ class ImageStorageHelper
     public static function store(UploadedFile $file, string $folder, ?string $disk = null): string
     {
         $account = currentAccount();
-        $diskToUse = $disk ?? config('filesystems.default');
 
         if (!$account) {
             throw new \Exception('No account context found.');
