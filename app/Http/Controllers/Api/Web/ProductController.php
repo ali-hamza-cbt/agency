@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Traits\PaginatesOrAll;
+use Illuminate\Validation\Rule;
 use App\Helpers\ImageStorageHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -41,18 +42,27 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'brand_id' => 'required|exists:brands,id',
-            'category_id' => 'required|exists:categories,id',
+            'brand_id' => [
+                'required',
+                Rule::exists('brands', 'id')->where(function ($query) {
+                    $query->where('agency_id', $this->user->id);
+                }),
+            ],
+            'category_id' => [
+                'required',
+                Rule::exists('categories', 'id')->where(function ($query) use ($request) {
+                    $query->where('agency_id', $this->user->id)->where('brand_id', $request->brand_id);
+                }),
+            ],
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|unique:products,sku',
             'container_type' => 'required|string',
             'size_ml' => 'required|integer|min:1',
-            'description' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpg,jpeg,png,svg|max:2048',
             'reorder_level' => 'nullable|integer|min:0',
-            'barcode' => 'nullable|string|max:255',
-            'status' => 'nullable|in:active,inactive',
+            'description' => 'nullable|string',
         ]);
+
 
         if ($validator->fails()) {
             return ApiResponse::validationError($validator->errors());
@@ -62,25 +72,26 @@ class ProductController extends Controller
             'brand_id',
             'category_id',
             'name',
-            'sku',
             'container_type',
             'size_ml',
-            'description',
             'reorder_level',
-            'barcode',
-            'status'
+            'description',
         ]);
         $data['agency_id'] = $this->user->id;
 
-        if ($request->hasFile('images')) {
-            $images = [];
-            foreach ($request->file('images') as $image) {
-                $images[] = ImageStorageHelper::store($image, 'product-images');
-            }
-            $data['images'] = json_encode($images);
-        }
-
+        // Step 1: Create product without images
         $product = Product::create($data);
+
+        // Step 2: Handle image uploads (if any)
+        if ($request->hasFile('images')) {
+            $uploadedImages = [];
+            foreach ($request->file('images') as $file) {
+                $uploadedImages[] = ImageStorageHelper::store($file, "products/{$product->id}", 'public');
+            }
+
+            // Step 3: Update product with images
+            $product->update(['images' => $uploadedImages]);
+        }
 
         return ApiResponse::success($product, 'Product created successfully.');
     }
@@ -95,59 +106,76 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
-        $product = Product::where('agency_id', $this->user->id)->find($id);
-        if (!$product) return ApiResponse::error([], 'Product not found.');
-
         $validator = Validator::make($request->all(), [
-            'brand_id' => 'required|exists:brands,id',
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'sku' => 'required|string|unique:products,sku,' . $id,
+            'brand_id' => [
+                'required',
+                Rule::exists('brands', 'id')->where(
+                    fn($q) =>
+                    $q->where('agency_id', $this->user->id)
+                ),
+            ],
+            'category_id' => [
+                'required',
+                Rule::exists('categories', 'id')->where(
+                    fn($q) =>
+                    $q->where('agency_id', $this->user->id)->where('brand_id', $request->brand_id)
+                ),
+            ],
+            'name'           => 'required|string|max:255',
             'container_type' => 'required|string',
-            'size_ml' => 'required|integer|min:1',
-            'description' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
-            'reorder_level' => 'nullable|integer|min:0',
-            'barcode' => 'nullable|string|max:255',
-            'status' => 'nullable|in:active,inactive',
+            'size_ml'        => 'required|integer|min:1',
+            'description'    => 'nullable|string',
+            'images'         => 'nullable|array',
+            'images.*'       => 'image|mimes:jpg,jpeg,png,svg|max:2048',
+            'keep_images'    => 'nullable|array', // old images to keep
         ]);
-
         if ($validator->fails()) return ApiResponse::validationError($validator->errors());
 
-        $data = $request->only([
-            'brand_id',
-            'category_id',
-            'name',
-            'sku',
-            'container_type',
-            'size_ml',
-            'description',
-            'reorder_level',
-            'barcode',
-            'status'
-        ]);
+        $product = Product::where('agency_id', $this->user->id)->find($id);
+        if (!$product) return ApiResponse::error('Product not found.');
 
-        // Handle multiple images
+        // Existing images from DB (JSON cast gives array)
+        $existingImages = $product->images ?? [];
+        $keepImages = array_filter($request->input('keep_images', []), fn($path) => !empty($path));
+        $newImages = [];
+
+
+        // Delete all old images except the ones to keep
+        ImageStorageHelper::deleteAllExcept($keepImages, $existingImages);
+
         if ($request->hasFile('images')) {
-            if ($product->images) {
-                ImageStorageHelper::deleteMultiple(json_decode($product->images, true));
+            foreach ($request->file('images') as $file) {
+                $storedPath = ImageStorageHelper::store($file, "products/{$product->id}");
+
+                if ($storedPath) { // only add if not null
+                    $newImages[] = $storedPath;
+                }
             }
-            $images = [];
-            foreach ($request->file('images') as $image) {
-                $images[] = ImageStorageHelper::store($image, 'product-images');
-            }
-            $data['images'] = json_encode($images);
         }
 
-        $product->update($data);
+        // Final images = kept + new
+        $finalImages = array_merge($keepImages, $newImages);
+
+        // Update product
+        $product->update([
+            'brand_id'       => $request->brand_id,
+            'category_id'    => $request->category_id,
+            'name'           => $request->name,
+            'container_type' => $request->container_type,
+            'size_ml'        => $request->size_ml,
+            'description'    => $request->description,
+            'reorder_level'  => $request->reorder_level,
+            'status'         => $request->status ?? $product->status,
+            'images'         => $finalImages,
+        ]);
 
         return ApiResponse::success($product, 'Product updated successfully.');
     }
 
-    public function delete($id)
+    public function destroy($id)
     {
         $product = Product::where('agency_id', $this->user->id)->find($id);
-        if (!$product) return ApiResponse::error([], 'Product not found.');
+        if (!$product) return ApiResponse::error('Product not found.');
 
         $product->delete();
         return ApiResponse::success([], 'Product deleted successfully.');
@@ -156,7 +184,7 @@ class ProductController extends Controller
     public function changeStatus(Request $request, $id)
     {
         $product = Product::where('agency_id', $this->user->id)->find($id);
-        if (!$product) return ApiResponse::error([], 'Product not found.');
+        if (!$product) return ApiResponse::error('Product not found.');
 
         $status = $request->input('status');
         if (!in_array($status, ['active', 'inactive'])) {
@@ -183,7 +211,7 @@ class ProductController extends Controller
     public function restore($id)
     {
         $product = Product::onlyTrashed()->where('agency_id', $this->user->id)->find($id);
-        if (!$product) return ApiResponse::error([], 'Product not found in trash.');
+        if (!$product) return ApiResponse::error('Product not found in trash.');
 
         $product->restore();
         return ApiResponse::success($product, 'Product restored successfully.');
@@ -192,13 +220,45 @@ class ProductController extends Controller
     public function forceDelete($id)
     {
         $product = Product::onlyTrashed()->where('agency_id', $this->user->id)->find($id);
-        if (!$product) return ApiResponse::error([], 'Product not found in trash.');
+        if (!$product) return ApiResponse::error('Product not found in trash.');
 
         if ($product->images) {
-            ImageStorageHelper::deleteMultiple(json_decode($product->images, true));
+            ImageStorageHelper::deleteMultiple($product->images);
         }
 
         $product->forceDelete();
         return ApiResponse::success([], 'Product permanently deleted.');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'integer'
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponse::validationError($validator->errors(), 'Please correct the highlighted errors.');
+        }
+
+        Product::where('agency_id', $this->user->id)->whereIn('id', $request->ids)->delete();
+
+        return ApiResponse::success([], 'Selected products deleted.');
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'integer'
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponse::validationError($validator->errors(), 'Please correct the highlighted errors.');
+        }
+
+        Product::onlyTrashed()->where('agency_id', $this->user->id)->whereIn('id', $request->ids)->restore();
+
+        return ApiResponse::success([], 'Selected products restored.');
     }
 }

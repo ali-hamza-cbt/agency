@@ -24,6 +24,9 @@ class Product extends Model
         'barcode',
         'status',
     ];
+    protected $casts = [
+        'images' => 'array',
+    ];
     // Auto-generate SKU on product creation
     protected static function boot()
     {
@@ -40,7 +43,7 @@ class Product extends Model
                 // Ensure uniqueness
                 do {
                     $randomNumber = rand(100, 999);
-                    $sku = $brandCode.$sizeCode.$containerCode.$randomNumber.'-'.$authId;
+                    $sku = $brandCode . $sizeCode . $containerCode . $randomNumber . '-' . $authId;
                 } while (self::where('sku', $sku)->exists());
 
                 $product->sku = $sku;
