@@ -25,7 +25,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         // Start query builder
-        $query = Product::query()->where('agency_id', $this->user->id);
+        $query = Product::query()->where('agency_id', $this->user->id)->with('batches');
 
         // Apply search
         if ($search = $request->input('search')) {
@@ -98,7 +98,7 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::where('agency_id', $this->user->id)->find($id);
+        $product = Product::where('agency_id', $this->user->id)->with('batches')->find($id);
         if (!$product) return ApiResponse::error([], 'Product not found.');
 
         return ApiResponse::success($product, 'Product details fetched.');

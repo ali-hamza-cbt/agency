@@ -23,7 +23,7 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        $query = Category::query()->where('agency_id', $this->user->id);
+        $query = Category::query()->where('agency_id', $this->user->id)->with('brand');
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%");
@@ -75,7 +75,7 @@ class CategoryController extends Controller
 
     public function show($id)
     {
-        $category = Category::where('agency_id', $this->user->id)->find($id);
+        $category = Category::where('agency_id', $this->user->id)->find($id)->with('brand');
 
         if (!$category) {
             return ApiResponse::error('Category not found.');
@@ -159,7 +159,7 @@ class CategoryController extends Controller
 
     public function trashed(Request $request)
     {
-        $query = Category::onlyTrashed()->where('agency_id', $this->user->id);
+        $query = Category::onlyTrashed()->where('agency_id', $this->user->id)->with('brand');
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%");

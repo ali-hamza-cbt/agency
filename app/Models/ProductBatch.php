@@ -38,7 +38,7 @@ class ProductBatch extends Model
 
                 do {
                     $randomNumber = rand(100, 999);
-                    $batchNo = $productCode . $dateCode . $randomNumber . '-' . $authId;
+                    $batchNo = $productCode . '-' . $dateCode . '-' . $randomNumber . '-' . $authId;
                 } while (self::where('batch_no', $batchNo)->exists());
 
                 $batch->batch_no = $batchNo;
