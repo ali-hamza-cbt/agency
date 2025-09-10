@@ -75,7 +75,7 @@ class CategoryController extends Controller
 
     public function show($id)
     {
-        $category = Category::where('agency_id', $this->user->id)->find($id)->with('brand')->whereHas('brand');
+        $category = Category::where('agency_id', $this->user->id)->whereHas('brand')->with('brand')->find($id);
 
         if (!$category) {
             return ApiResponse::error('Category not found.');
