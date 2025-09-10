@@ -23,7 +23,7 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        $query = Category::query()->where('agency_id', $this->user->id)->with('brand');
+        $query = Category::query()->where('agency_id', $this->user->id)->with('brand')->whereHas('brand');
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%");
@@ -159,7 +159,7 @@ class CategoryController extends Controller
 
     public function trashed(Request $request)
     {
-        $query = Category::onlyTrashed()->where('agency_id', $this->user->id)->with('brand');
+        $query = Category::onlyTrashed()->where('agency_id', $this->user->id)->with('brand')->whereHas('brand');;
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%");
