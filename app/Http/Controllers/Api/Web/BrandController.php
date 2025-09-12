@@ -64,7 +64,7 @@ class BrandController extends Controller
 
     public function show($id)
     {
-        $brand = Brand::where('agency_id', $this->user->id)->find($id);
+        $brand = Brand::where('agency_id', $this->user->id)->with('categories')->find($id);
 
         if (!$brand) {
             return ApiResponse::error('Brand not found.');
