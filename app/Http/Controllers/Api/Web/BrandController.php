@@ -23,7 +23,7 @@ class BrandController extends Controller
 
     public function index(Request $request)
     {
-        $query = Brand::query()->where('agency_id', $this->user->id);
+        $query = Brand::query()->where('agency_id', $this->user->id)->with('categories');
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%");
