@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Validator;
 class ProductController extends Controller
 {
     use PaginatesOrAll;
-0
     protected $user;
 
     public function __construct()
