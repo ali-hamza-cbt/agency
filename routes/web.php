@@ -94,6 +94,10 @@ Route::prefix('web')->group(function () {
             // Bulk actions
             Route::post('/bulk-delete', 'bulkDelete');
             Route::post('/bulk-restore', 'bulkRestore');
+
+            // Product With Batches
+            Route::post('/{id}/with-batches', 'withBatches');
+            Route::post('/{id}/with-deleted-batches', 'withDeleteBatches');
         });
 
         /**

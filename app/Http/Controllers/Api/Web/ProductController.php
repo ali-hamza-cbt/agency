@@ -9,12 +9,13 @@ use App\Traits\PaginatesOrAll;
 use Illuminate\Validation\Rule;
 use App\Helpers\ImageStorageHelper;
 use App\Http\Controllers\Controller;
+use App\Models\ProductBatch;
 use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
     use PaginatesOrAll;
-
+0
     protected $user;
 
     public function __construct()
@@ -260,5 +261,107 @@ class ProductController extends Controller
         Product::onlyTrashed()->where('agency_id', $this->user->id)->whereIn('id', $request->ids)->restore();
 
         return ApiResponse::success([], 'Selected products restored.');
+    }
+
+    public function withBatches(Request $request, $id)
+    {
+        // Get product with brand and category
+        $product = Product::where('agency_id', $this->user->id)->with(['brand', 'category'])->find($id);
+
+        if (!$product) {
+            return ApiResponse::error('Product not found.');
+        }
+
+        // Build query for batches
+        $query = ProductBatch::where(['agency_id'  => $this->user->id, 'product_id' => $id])->orderByDesc('id');
+
+        /**
+         * -------------------------------------------
+         * Apply Filters
+         * -------------------------------------------
+         */
+
+        //  Batch No
+        if ($request->filled('batch_no')) {
+            $query->where('batch_no', $request->batch_no);
+        }
+
+        //  Expiry Date (range)
+        if ($request->filled('expiry_from')) {
+            $query->whereDate('expiry_date', '>=', $request->expiry_from);
+        }
+        if ($request->filled('expiry_to')) {
+            $query->whereDate('expiry_date', '<=', $request->expiry_to);
+        }
+
+        //  Pack Type
+        if ($request->filled('pack_type')) {
+            $query->where('pack_type', $request->pack_type);
+        }
+
+        //  Expired filter
+        if ($request->boolean('expired')) {
+            $query->whereDate('expiry_date', '<', now());
+        }
+
+        //  Available filter (not expired + qty > 0)
+        if ($request->boolean('available')) {
+            $query->whereDate('expiry_date', '>=', now())->where('single_qty', '>', 0);
+        }
+
+        // Get paginated results
+        $batches = $this->paginateOrAll($query, $request);
+
+        return ApiResponse::success(['product' => $product, 'batches' => $batches], 'Product Batches fetched.');
+    }
+    public function withDeleteBatches(Request $request, $id)
+    {
+        // Get product with brand and category
+        $product = Product::where('agency_id', $this->user->id)->with(['brand', 'category'])->find($id);
+
+        if (!$product) {
+            return ApiResponse::error('Product not found.');
+        }
+
+        // Build query for soft-deleted batches
+        $query = ProductBatch::onlyTrashed()->where(['agency_id'  => $this->user->id, 'product_id' => $id])->orderByDesc('id');
+
+        /**
+         * -------------------------------------------
+         * Apply Filters (same as withBatches)
+         * -------------------------------------------
+         */
+
+        //  Batch No
+        if ($request->filled('batch_no')) {
+            $query->where('batch_no', $request->batch_no);
+        }
+
+        //  Expiry Date (range)
+        if ($request->filled('expiry_from')) {
+            $query->whereDate('expiry_date', '>=', $request->expiry_from);
+        }
+        if ($request->filled('expiry_to')) {
+            $query->whereDate('expiry_date', '<=', $request->expiry_to);
+        }
+
+        //  Pack Type
+        if ($request->filled('pack_type')) {
+            $query->where('pack_type', $request->pack_type);
+        }
+
+        //  Expired filter
+        if ($request->boolean('expired')) {
+            $query->whereDate('expiry_date', '<', now());
+        }
+
+        //  Available filter (not expired + qty > 0)
+        if ($request->boolean('available')) {
+            $query->whereDate('expiry_date', '>=', now())->where('single_qty', '>', 0);
+        }
+
+        // Get paginated results
+        $batches = $this->paginateOrAll($query, $request);
+        return ApiResponse::success(['product' => $product, 'batches' => $batches], 'Deleted Product Batches fetched.');
     }
 }

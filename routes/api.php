@@ -97,6 +97,10 @@ Route::prefix('web')->group(function () {
             // Bulk actions
             Route::post('/bulk-delete', 'bulkDelete');
             Route::post('/bulk-restore', 'bulkRestore');
+
+            // Product With Batches
+            Route::post('/{id}/with-batches', 'withBatches');
+            Route::post('/{id}/with-deleted-batches', 'withDeleteBatches');
         });
 
         /**
@@ -120,6 +124,18 @@ Route::prefix('web')->group(function () {
             // Bulk actions
             Route::post('/bulk-delete', 'bulkDelete');
             Route::post('/bulk-restore', 'bulkRestore');
+        });
+
+        /**
+         * Retailers Routes
+         */
+        Route::prefix('retailers')->controller(RetailerController::class)->group(function () {
+            Route::get('/', 'index');            // List retailers
+            Route::post('/', 'store');           // Create retailer
+            Route::get('{id}', 'show');          // Show retailer details
+            Route::put('{id}', 'update');        // Update retailer
+            Route::delete('{id}', 'destroy');    // Soft delete retailer
+            Route::post('restore/{id}', 'restore'); // Restore retailer
         });
 
         /**
@@ -149,18 +165,6 @@ Route::prefix('web')->group(function () {
                 Route::put('{id}', 'update');        // Update delivery boy
                 Route::delete('{id}', 'destroy');    // Soft delete delivery boy
                 Route::post('restore/{id}', 'restore'); // Restore delivery boy
-            });
-
-            /**
-             * Retailers Routes
-             */
-            Route::prefix('retailers')->controller(RetailerController::class)->group(function () {
-                Route::get('/', 'index');            // List retailers
-                Route::post('/', 'store');           // Create retailer
-                Route::get('{id}', 'show');          // Show retailer details
-                Route::put('{id}', 'update');        // Update retailer
-                Route::delete('{id}', 'destroy');    // Soft delete retailer
-                Route::post('restore/{id}', 'restore'); // Restore retailer
             });
         });
     });
