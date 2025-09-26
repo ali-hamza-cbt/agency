@@ -99,8 +99,8 @@ Route::prefix('web')->group(function () {
             Route::post('/bulk-restore', 'bulkRestore');
 
             // Product With Batches
-            Route::post('/{id}/with-batches', 'withBatches');
-            Route::post('/{id}/with-deleted-batches', 'withDeleteBatches');
+            Route::get('/{id}/with-batches', 'withBatches');
+            Route::get('/{id}/with-deleted-batches', 'withDeleteBatches');
         });
 
         /**
@@ -122,8 +122,8 @@ Route::prefix('web')->group(function () {
             Route::delete('/{id}/force-delete', 'forceDelete');
 
             // Bulk actions
-            Route::get('/bulk-delete', 'bulkDelete');
-            Route::get('/bulk-restore', 'bulkRestore');
+            Route::post('/bulk-delete', 'bulkDelete');
+            Route::post('/bulk-restore', 'bulkRestore');
         });
 
         /**
