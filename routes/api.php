@@ -122,8 +122,8 @@ Route::prefix('web')->group(function () {
             Route::delete('/{id}/force-delete', 'forceDelete');
 
             // Bulk actions
-            Route::post('/bulk-delete', 'bulkDelete');
-            Route::post('/bulk-restore', 'bulkRestore');
+            Route::get('/bulk-delete', 'bulkDelete');
+            Route::get('/bulk-restore', 'bulkRestore');
         });
 
         /**

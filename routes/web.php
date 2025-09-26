@@ -96,8 +96,8 @@ Route::prefix('web')->group(function () {
             Route::post('/bulk-restore', 'bulkRestore');
 
             // Product With Batches
-            Route::post('/{id}/with-batches', 'withBatches');
-            Route::post('/{id}/with-deleted-batches', 'withDeleteBatches');
+            Route::get('/{id}/with-batches', 'withBatches');
+            Route::get('/{id}/with-deleted-batches', 'withDeleteBatches');
         });
 
         /**
