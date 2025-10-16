@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\Web\BrandController;
 use App\Http\Controllers\Api\Web\ProductController;
 use App\Http\Controllers\Api\Web\CategoryController;
+use App\Http\Controllers\Api\Web\RetailerController;
 use App\Http\Controllers\Api\Web\AgencyDetailController;
 use App\Http\Controllers\Api\Web\ProductBatchController;
 use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
@@ -121,6 +122,18 @@ Route::prefix('web')->group(function () {
             // Bulk actions
             Route::post('/bulk-delete', 'bulkDelete');
             Route::post('/bulk-restore', 'bulkRestore');
+        });
+
+        /**
+         * Retailers Routes
+         */
+        Route::prefix('retailers')->controller(RetailerController::class)->group(function () {
+            Route::get('/', 'index');            // List retailers
+            Route::post('/', 'store');           // Create retailer
+            Route::get('{id}', 'show');          // Show retailer details
+            Route::put('{id}', 'update');        // Update retailer
+            Route::delete('{id}', 'destroy');    // Soft delete retailer
+            Route::post('restore/{id}', 'restore'); // Restore retailer
         });
     });
 });

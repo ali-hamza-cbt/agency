@@ -149,7 +149,7 @@ class RetailerController extends Controller
      */
     public function show($id)
     {
-        $retailer = User::where('agency_id', $this->user->id)->where('user_type', 'retailer')->with('retailerProfile')->find($id);
+        $retailer = User::where('agency_id', $this->user->id)->where('role', 'retailer')->with('retailerProfile')->find($id);
 
         if (!$retailer) {
             return ApiResponse::error('Retailer not found.');
@@ -164,7 +164,7 @@ class RetailerController extends Controller
     public function update(Request $request, $id)
     {
         $retailer = User::where('agency_id', $this->user->id)
-            ->where('user_type', 'retailer')
+            ->where('role', 'retailer')
             ->find($id);
 
         if (!$retailer) {
@@ -234,7 +234,7 @@ class RetailerController extends Controller
     public function changeStatus(Request $request, $id)
     {
         $retailer = User::where('agency_id', $this->user->id)
-            ->where('user_type', 'retailer')
+            ->where('role', 'retailer')
             ->find($id);
 
         if (!$retailer) {
@@ -259,7 +259,7 @@ class RetailerController extends Controller
     {
         $query = User::onlyTrashed()
             ->where('agency_id', $this->user->id)
-            ->where('user_type', 'retailer')
+            ->where('role', 'retailer')
             ->with('retailerProfile');
 
         if ($search = $request->input('search')) {
@@ -278,7 +278,7 @@ class RetailerController extends Controller
     {
         $retailer = User::onlyTrashed()
             ->where('agency_id', $this->user->id)
-            ->where('user_type', 'retailer')
+            ->where('role', 'retailer')
             ->find($id);
 
         if (!$retailer) {
@@ -297,7 +297,7 @@ class RetailerController extends Controller
     {
         $retailer = User::onlyTrashed()
             ->where('agency_id', $this->user->id)
-            ->where('user_type', 'retailer')
+            ->where('role', 'retailer')
             ->find($id);
 
         if (!$retailer) {
@@ -324,7 +324,7 @@ class RetailerController extends Controller
         }
 
         User::where('agency_id', $this->user->id)
-            ->where('user_type', 'retailer')
+            ->where('role', 'retailer')
             ->whereIn('id', $request->ids)
             ->delete();
 
@@ -348,7 +348,7 @@ class RetailerController extends Controller
 
         User::onlyTrashed()
             ->where('agency_id', $this->user->id)
-            ->where('user_type', 'retailer')
+            ->where('role', 'retailer')
             ->whereIn('id', $request->ids)
             ->restore();
 
