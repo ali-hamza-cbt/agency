@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Traits\PaginatesOrAll;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Services\Retailer\SMSService;
 use App\Services\Retailer\EmailService;
@@ -172,47 +173,110 @@ class RetailerController extends Controller
             ->find($id);
 
         if (!$retailer) {
-            return ApiResponse::error('Retailer not found.');
+            return response()->json([
+                'status' => false,
+                'message' => 'Retailer not found.'
+            ], 404);
         }
 
         $validator = Validator::make($request->all(), [
             'name'     => 'required|string|max:255',
             'email'    => [
-                'required',
+                'nullable',
                 'email',
                 Rule::unique('users')->ignore($retailer->id)
             ],
-            'password' => 'nullable|string|min:6',
-            'phone'    => 'nullable|string|max:20',
+            'password' => 'nullable|string|min:9',
+            'phone'    => 'required|string|max:20',
             'address'  => 'nullable|string',
             'city'     => 'nullable|string|max:100',
             'state'    => 'nullable|string|max:100',
             'zip'      => 'nullable|string|max:20',
             'country'  => 'nullable|string|max:100',
+            'shop_name' => 'nullable|string|max:255',
+            'shop_address' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
-            return ApiResponse::validationError($validator->errors());
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $data = $request->only([
-            'name',
-            'email',
-            'phone',
-            'address',
-            'city',
-            'state',
-            'zip',
-            'country'
-        ]);
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
+        DB::beginTransaction();
+
+        try {
+            $data = $request->only([
+                'name',
+                'email',
+                'phone',
+                'address',
+                'city',
+                'state',
+                'zip',
+                'country'
+            ]);
+
+            if ($request->filled('password')) {
+                $plainPassword = $request->password;
+                $data['password'] = bcrypt($plainPassword);
+            }
+
+            // Update user info
+            $retailer->update($data);
+
+            // Update or create profile
+            $retailer->retailerProfile()->updateOrCreate(
+                ['user_id' => $retailer->id],
+                [
+                    'shop_name' => $request->shop_name,
+                    'shop_address' => $request->shop_address,
+                    'phone' => $request->phone,
+                ]
+            );
+
+            DB::commit();
+
+            // Optional: Send updated credentials if password changed
+            if ($request->filled('password')) {
+                $message = "Your account credentials have been updated.\n\n"
+                    . "Email: {$retailer->email}\n"
+                    . "New Password: {$plainPassword}\n\n"
+                    . "Login here: " . config('app.url');
+
+                try {
+                    $this->smsService->send($retailer->phone, $message);
+                } catch (\Throwable $e) {
+                    \Log::error("SMS sending failed (update): " . $e->getMessage());
+                }
+
+                try {
+                    $this->emailService->sendCredentials(
+                        $retailer->email,
+                        $retailer->name,
+                        $plainPassword
+                    );
+                } catch (\Throwable $e) {
+                    Log::error("Email sending failed (update): " . $e->getMessage());
+                }
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Retailer updated successfully.',
+                'data' => $retailer->load('retailerProfile')
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => "Failed to update retailer: " . $e->getMessage()
+            ], 500);
         }
-
-        $retailer->update($data);
-
-        return ApiResponse::success($retailer->load('retailerProfile'), 'Retailer updated successfully.');
     }
+
 
     /**
      * Delete retailer (soft delete)
