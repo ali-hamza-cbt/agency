@@ -128,12 +128,12 @@ Route::prefix('web')->group(function () {
          * Retailers Routes
          */
         Route::prefix('retailers')->controller(RetailerController::class)->group(function () {
-            Route::get('/', 'index');            // List retailers
-            Route::post('/', 'store');           // Create retailer
-            Route::get('{id}', 'show');          // Show retailer details
-            Route::post('{id}/update', 'update');        // Update retailer
-            Route::delete('{id}', 'destroy');    // Soft delete retailer
-            Route::post('{id}/restore', 'restore'); // Restore retailer
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('{id}', 'show');
+            Route::post('{id}/update', 'update');
+            Route::delete('{id}', 'destroy');
+            Route::post('{id}/restore', 'restore');
         });
     });
 });
