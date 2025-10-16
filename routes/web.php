@@ -128,12 +128,21 @@ Route::prefix('web')->group(function () {
          * Retailers Routes
          */
         Route::prefix('retailers')->controller(RetailerController::class)->group(function () {
-            Route::get('/', 'index');
-            Route::post('/', 'store');
-            Route::get('{id}', 'show');
-            Route::post('{id}/update', 'update');
-            Route::delete('{id}', 'destroy');
-            Route::post('{id}/restore', 'restore');
+            Route::get('/', 'index');            // List retailers
+            Route::post('/', 'store');           // Create retailer
+            Route::get('/trashed', 'trashed');     // Trashed retailers
+            Route::get('{id}', 'show');          // Show retailer details
+            Route::post('{id}/update', 'update');        // Update retailer
+            Route::delete('{id}', 'destroy');    // Soft delete retailer
+
+            // Actions
+            Route::post('/{id}/change-status', 'changeStatus');
+            Route::post('/{id}/restore', 'restore');
+            Route::delete('/{id}/force-delete', 'forceDelete');
+
+            // Bulk actions
+            Route::post('/bulk-delete', 'bulkDelete');
+            Route::post('/bulk-restore', 'bulkRestore');
         });
     });
 });

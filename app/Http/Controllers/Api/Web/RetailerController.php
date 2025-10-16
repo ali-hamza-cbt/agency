@@ -233,9 +233,7 @@ class RetailerController extends Controller
      */
     public function changeStatus(Request $request, $id)
     {
-        $retailer = User::where('agency_id', $this->user->id)
-            ->where('role', 'retailer')
-            ->find($id);
+        $retailer = User::where('agency_id', $this->user->id)->where('role', 'retailer')->find($id);
 
         if (!$retailer) {
             return ApiResponse::error('Retailer not found.');
@@ -249,7 +247,7 @@ class RetailerController extends Controller
         $retailer->status = $status;
         $retailer->save();
 
-        return ApiResponse::success($retailer, 'Retailer status updated.');
+        return ApiResponse::success($retailer->load('retailerProfile'), 'Retailer status updated.');
     }
 
     /**
