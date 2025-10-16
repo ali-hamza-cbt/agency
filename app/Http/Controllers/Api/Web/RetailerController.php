@@ -97,7 +97,11 @@ class RetailerController extends Controller
 
             // Create retailer + profile
             $retailer = User::create($data);
-            $retailer->retailerProfile()->create(['shop_name' => $request->shop_name]);
+            $retailer->retailerProfile()->create([
+                'shop_name' => $request->shop_name,
+                'shop_address' => $request->shop_address,
+                'phone' => $request->phone,
+            ]);
 
             DB::commit();
 
