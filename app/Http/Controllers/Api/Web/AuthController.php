@@ -153,42 +153,60 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $refreshToken = $request->cookie('refresh_token');
+        try {
+            $refreshToken = $request->cookie('refresh_token');
 
-        if ($refreshToken) {
-            $encrypted = TokenHelper::encryptToken($refreshToken);
-            UserSession::where('refresh_token', $encrypted)->delete();
+            if ($refreshToken) {
+                // Find session by decrypting and comparing
+                $session = UserSession::get()->first(
+                    fn($s) => TokenHelper::decryptToken($s->refresh_token) === $refreshToken
+                );
+
+                if ($session) {
+                    $session->delete();
+                }
+            }
+
+            // Delete current Sanctum token (for this device)
+            if ($request->user() && $request->user()->currentAccessToken()) {
+                $request->user()->currentAccessToken()->delete();
+            }
+
+            // Clear cookies
+            return ApiResponse::success([], 'Logged out successfully.')
+                ->cookie('access_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict')
+                ->cookie('refresh_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict');
+        } catch (\Throwable $e) {
+            Log::error('Logout failed', ['error' => $e->getMessage()]);
+            return ApiResponse::error('Logout failed. Please try again later.', 500);
         }
-
-        // Delete only the current Sanctum token
-        if ($request->user() && $request->user()->currentAccessToken()) {
-            $request->user()->currentAccessToken()->delete();
-        }
-
-        // Clear cookies
-        return ApiResponse::success([], 'Logged out successfully.')
-            ->cookie('access_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict')
-            ->cookie('refresh_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict');
     }
+
+
     public function logoutAllDevices(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
         if (!$user) {
             return ApiResponse::error('User not authenticated.', 401);
         }
 
-        // Delete all user sessions
-        UserSession::where('user_id', $user->id)->delete();
+        try {
+            DB::transaction(function () use ($user) {
+                UserSession::where('user_id', $user->id)->delete();
+                $user->tokens()->delete();
+            });
 
-        // Delete all Sanctum tokens (logs out from all devices)
-        $user->tokens()->delete();
-
-        // Clear cookies
-        return ApiResponse::success([], 'Logged out from all devices successfully.')
-            ->cookie('access_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict')
-            ->cookie('refresh_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict');
+            return ApiResponse::success([], 'Logged out from all devices successfully.')
+                ->cookie('access_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict')
+                ->cookie('refresh_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict');
+        } catch (\Throwable $e) {
+            Log::error('LogoutAllDevices failed', ['error' => $e->getMessage()]);
+            return ApiResponse::error('Failed to log out from all devices.', 500);
+        }
     }
+
+
 
     /**
      *Browser FingerPrint
@@ -213,5 +231,4 @@ class AuthController extends Controller
             default => 60, // 1 hour
         };
     }
-    
 }

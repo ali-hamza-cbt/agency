@@ -17,6 +17,10 @@ Route::prefix('web')->group(function () {
     Route::post('/refresh', [WebAuth::class, 'refresh'])->middleware('throttle:10,1');
 
     Route::middleware(['auth:sanctum', 'validate.sanctum.expiry'])->group(function () {
+
+        Route::post('/logout', 'logout');
+        Route::post('/logout-all', 'logoutAllDevices');
+
         Route::get('/profile', fn() => Auth::user())->middleware('auth:sanctum');
         Route::post('/logout', [WebAuth::class, 'logout']);
         Route::post('/logout-all', [WebAuth::class, 'logoutAll']);
