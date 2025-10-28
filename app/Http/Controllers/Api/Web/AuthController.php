@@ -157,22 +157,21 @@ class AuthController extends Controller
             $refreshToken = $request->cookie('refresh_token');
 
             if ($refreshToken) {
-                // Find session by decrypting and comparing
-                $session = UserSession::get()->first(
-                    fn($s) => TokenHelper::decryptToken($s->refresh_token) === $refreshToken
-                );
+
+                // Find matching UserSession by decrypting stored tokens
+                $session = UserSession::get()->first(fn($s) => TokenHelper::decryptToken($s->refresh_token) === $refreshToken);
 
                 if ($session) {
                     $session->delete();
                 }
             }
 
-            // Delete current Sanctum token (for this device)
-            if ($request->user() && $request->user()->currentAccessToken()) {
+            // Delete Sanctum token for this device
+            if ($request->user()?->currentAccessToken()) {
                 $request->user()->currentAccessToken()->delete();
             }
 
-            // Clear cookies
+            // Remove cookies completely
             return ApiResponse::success([], 'Logged out successfully.')
                 ->cookie('access_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict')
                 ->cookie('refresh_token', '', -1, '/', env('SESSION_DOMAIN'), true, true, false, 'Strict');
@@ -181,6 +180,7 @@ class AuthController extends Controller
             return ApiResponse::error('Logout failed. Please try again later.', 500);
         }
     }
+
 
 
     public function logoutAllDevices(Request $request)
@@ -205,6 +205,7 @@ class AuthController extends Controller
             return ApiResponse::error('Failed to log out from all devices.', 500);
         }
     }
+
 
 
 
