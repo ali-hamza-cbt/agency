@@ -108,7 +108,7 @@ class BrandController extends Controller
     }
 
 
-    public function delete($id)
+    public function destroy($id)
     {
         $brand = Brand::where('agency_id', $this->user->id)->find($id);
 
@@ -142,9 +142,10 @@ class BrandController extends Controller
     }
 
 
-    public function trashed(Request $request)
+    public function deleted(Request $request)
     {
-        $query = Brand::query()->onlyTrashed()->where('agency_id', $this->user->id);
+        return 'ok';
+        $query = Brand::query()->where('agency_id', $this->user->id);
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%");
@@ -173,7 +174,7 @@ class BrandController extends Controller
         $brand = Brand::onlyTrashed()->where('agency_id', $this->user->id)->find($id);
 
         if (!$brand) {
-            return ApiResponse::error([], 'Brand not found in trash.');
+            return ApiResponse::error('Brand not found in trash.');
         }
 
         $brand->forceDelete();

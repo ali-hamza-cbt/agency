@@ -42,19 +42,19 @@ Route::prefix('web')->group(function () {
             Route::post('/{id}/change-status', 'changeStatus');
 
             // Trashed/Restore/Force Delete
-            Route::get('/trashed', 'trashed');
             Route::post('/{id}/restore', 'restore');
             Route::delete('/{id}/force-delete', 'forceDelete');
 
             // Bulk actions
             Route::post('/bulk-delete', 'bulkDelete');
             Route::post('/bulk-restore', 'bulkRestore');
+            Route::get('/delete', 'deleted');
         });
 
         /**
          * Categories
          */
-        Route::controller(CategoryController::class)->prefix('brands')->group(function () {
+        Route::controller(CategoryController::class)->prefix('categories')->group(function () {
 
             Route::get('/', 'index');
             Route::post('/', 'store');

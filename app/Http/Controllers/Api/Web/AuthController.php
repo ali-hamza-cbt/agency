@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\UserSession;
 use App\Helpers\ApiResponse;
 use App\Helpers\TokenHelper;
-use App\Models\LoginAttempt;
 use Illuminate\Http\Request;
 use App\Events\UserRegistered;
 use App\Services\Auth\LoginHelper;
@@ -16,7 +15,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -213,5 +211,5 @@ class AuthController extends Controller
             default => 60, // 1 hour
         };
     }
-    
+
 }
