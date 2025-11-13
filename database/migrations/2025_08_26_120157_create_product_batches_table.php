@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('batch_no')->comment('Unique batch number');
             $table->date('expiry_date');
             // Pack info
-            $table->string('pack_type')->comment('Single, 6-Pack, 12-Pack, Crate');
+            $table->string('pack_type')->comment('Single, 2-Pack, 4-Pack, 6-Pack, 12-Pack, 24-Pack, Crate');
             $table->integer('pack_size')->default(1)->comment('Units per pack');
             $table->integer('pack_qty')->default(0)->comment('Number of packs in stock');
             $table->integer('single_qty')->default(0)->comment('Total single units available');

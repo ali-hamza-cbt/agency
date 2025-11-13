@@ -248,4 +248,31 @@ class   User extends Authenticatable
     {
         return $this->hasMany(ProductBatch::class, 'agency_id');
     }
+
+    /**
+     * Relation for saleman profile
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<SalesmanProfile, User>
+     */
+    public function salesmanProfile()
+    {
+        return $this->hasOne(SalesmanProfile::class);
+    }
+
+    /**
+     * Relation for deliveryboy profile
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<DeliveryBoyProfile, User>
+     */
+    public function deliveryBoyProfile()
+    {
+        return $this->hasOne(DeliveryBoyProfile::class);
+    }
+
+    /**
+     * Relation for retailer profile
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<RetailerProfile, User>
+     */
+    public function retailerProfile()
+    {
+        return $this->hasOne(RetailerProfile::class);
+    }
 }

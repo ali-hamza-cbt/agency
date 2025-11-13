@@ -73,4 +73,28 @@ class ImageStorageHelper
             }
         }
     }
+
+    /**
+     * Delete all files except the ones to keep.
+     *
+     * @param  array              $keepPaths     Paths to keep
+     * @param  array|string|null  $allPaths      All existing paths (array or single)
+     * @param  string|null        $disk          Storage disk (default from config if null)
+     * @return void
+     */
+    public static function deleteAllExcept(array $keepPaths, array|string|null $allPaths, ?string $disk = null)
+    {
+        if (empty($allPaths)) {
+            return;
+        }
+
+        $diskToUse = $disk ?? config('filesystems.default');
+        $pathsArray = is_array($allPaths) ? $allPaths : [$allPaths];
+
+        foreach ($pathsArray as $path) {
+            if ($path && !in_array($path, $keepPaths, true) && Storage::disk($diskToUse)->exists($path)) {
+                Storage::disk($diskToUse)->delete($path);
+            }
+        }
+    }
 }
